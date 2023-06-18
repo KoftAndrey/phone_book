@@ -115,6 +115,32 @@ body {
   background-image: url("../img/del.svg");
 }
 
+.edit {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: none;
+  background-color: transparent;
+  background-image: url("../img/edit.svg");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.7;
+}
+
+.edit:hover {
+  opacity: 1;
+}
+
+.contact-edit {
+  width: 40px;
+  opacity: 0;
+}
+
+.contact-edit.is-visible{
+  opacity: 1;
+}
+
 .del-icon:hover,
 .close:hover {
   opacity: 0.7;

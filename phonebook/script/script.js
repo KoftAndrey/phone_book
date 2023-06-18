@@ -102,7 +102,7 @@ const data = [
 
   const createTable = () => {
     const table = document.createElement('table');
-    table.classList.add('table', 'table-sriped');
+    table.classList.add('table', 'table-striped');
 
     const thead = document.createElement('thead');
     thead.insertAdjacentHTML('beforeend', `
@@ -110,7 +110,7 @@ const data = [
       <th class="delete">Удалить</th>
       <th>Имя</th>
       <th>Фамилия</th>
-      <th>Телефон</th>
+      <th colspan="2">Телефон</th>
     </tr>
     `);
 
@@ -128,8 +128,14 @@ const data = [
 
     const form = document.createElement('form');
     form.classList.add('form');
+
+    const closeButton = document.createElement('button');
+    closeButton.type = 'button';
+    closeButton.classList.add('close');
+    form.append(closeButton);
+    form.closeButton = closeButton;
+
     form.insertAdjacentHTML('beforeend', `
-      <button class="close" type="button"></button>
       <h2 class="form-title">Добавить контакт</h2>
       <div class="form-group">
         <label class="form-label" for="name">Имя:</label>
@@ -137,7 +143,7 @@ const data = [
           id="name" type="text" required>
       </div>
       <div class="form-group">
-        <label class="form-label" for="surname"Фамилия:</label>
+        <label class="form-label" for="surname">Фамилия:</label>
         <input class="form-input" name="surname" 
           id="surname" type="text" required>
       </div>
@@ -190,10 +196,19 @@ const data = [
     const phoneLink = document.createElement('a');
     phoneLink.href = `tel:${phone}`;
     phoneLink.textContent = phone;
+    tr.phoneLink = phoneLink;
 
     tdPhone.append(phoneLink);
 
-    tr.append(tdDel, tdName, tdSurname, tdPhone);
+    const tdEdit = document.createElement('td');
+    tdEdit.classList.add('contact-edit');
+    const editButton = document.createElement('button');
+    editButton.type = 'button';
+    editButton.classList.add('edit');
+    tdEdit.append(editButton);
+    tr.tdEdit = tdEdit;
+
+    tr.append(tdDel, tdName, tdSurname, tdPhone, tdEdit);
 
     return tr;
   };
@@ -226,21 +241,60 @@ const data = [
 
     return {
       list: table.tbody,
+      logo,
+      btnAdd: buttonsGroup.btns[0],
+      formOverlay: form.overlay,
+      form: form.form,
     };
   };
 
   const renderContacts = (elem, data) => {
     const allRow = data.map(createRow);
     elem.append(...allRow);
+    return allRow;
+  };
+
+  const hoverRow = (allRow, logo, editBtn) => {
+    const logoText = logo.textContent;
+    allRow.forEach(contact => {
+      contact.addEventListener('mouseenter', () => {
+        logo.textContent = contact.phoneLink.textContent;
+        contact.tdEdit.classList.add('is-visible');
+      });
+    });
+    allRow.forEach(contact => {
+      contact.addEventListener('mouseleave', () => {
+        logo.textContent = logoText;
+        contact.tdEdit.classList.remove('is-visible');
+      });
+    });
   };
 
   const init = (selectorApp, title) => {
     const app = document.querySelector(selectorApp);
     const phoneBook = renderPhoneBook(app, title);
-    const {list} = phoneBook;
+    const {list, logo, btnAdd, formOverlay, form} = phoneBook;
 
-    renderContacts(list, data);
     // Функционал
+    const allRow = renderContacts(list, data);
+
+    hoverRow(allRow, logo);
+
+    btnAdd.addEventListener('click', () => {
+      formOverlay.classList.add('is-visible');
+    });
+
+    form.addEventListener('click', event => {
+      event.stopImmediatePropagation();
+    });
+
+    formOverlay.addEventListener('click', () => {
+      formOverlay.classList.remove('is-visible');
+    });
+
+    form.closeButton.addEventListener('click', () => {
+      formOverlay.classList.remove('is-visible');
+    });
   };
 
   window.phoneBookInit = init;
