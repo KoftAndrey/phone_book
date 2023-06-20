@@ -156,3 +156,8 @@ body {
   color: #fff;
   text-align: center;
 }
+
+.name:hover, .surname:hover {
+  text-decoration: underline;
+  cursor: pointer;
+} 
