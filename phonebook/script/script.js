@@ -3,17 +3,17 @@
 const data = [
   {
     name: 'Иван',
-    surname: 'Петров',
+    surname: 'Яковлев',
     phone: '+79514545454',
   },
   {
     name: 'Антон',
-    surname: 'Семёнов',
+    surname: 'Верещагин',
     phone: '+79999999999',
   },
   {
-    name: 'Семён',
-    surname: 'Иванов',
+    name: 'Яна',
+    surname: 'Иванова',
     phone: '+79800252525',
   },
   {
@@ -108,8 +108,8 @@ const data = [
     thead.insertAdjacentHTML('beforeend', `
     <tr>
       <th class="delete">Удалить</th>
-      <th class="name">Имя</th>
-      <th class="surname">Фамилия</th>
+      <th class="name">Имя<span class="sort-icon"></span></th>
+      <th class="surname">Фамилия<span class="sort-icon"></span></th>
       <th colspan="2">Телефон</th>
     </tr>
     `);
@@ -273,13 +273,44 @@ const data = [
     });
   };
 
-  const sortRows = (e, list) => {
-    let i;
-    if (e.target.classList.contains('name')) i = 1;
-    if (e.target.classList.contains('surname')) i = 2;
+  const sortAZ = (i, list) => {
     const sorted = Array.from(list.rows)
         .sort((a, b) => (a.cells[i].innerHTML > b.cells[i].innerHTML ? 1 : -1));
     list.append(...sorted);
+  };
+
+  const sortZA = (i, list) => {
+    const sorted = Array.from(list.rows)
+        .sort((a, b) => (a.cells[i].innerHTML > b.cells[i].innerHTML ? -1 : 1));
+    list.append(...sorted);
+  };
+
+  const sortRows = (e, thead, list, reserve) => {
+    const i = Array.from(thead.firstElementChild.cells).indexOf(e.target);
+    if (i === 1) {
+      e.target.nextElementSibling.lastChild.classList.remove('alphabet-az', 'alphabet-za');
+    }
+    if (i === 2) {
+      e.target.previousElementSibling.lastChild.classList.remove('alphabet-az', 'alphabet-za');
+    }
+
+    switch (true) {
+      case !e.target.lastElementChild:
+        break;
+      case e.target.lastChild.classList.value === 'sort-icon':
+        e.target.lastChild.classList.add('alphabet-az');
+        sortAZ(i, list);
+        break;
+      case e.target.lastChild.classList.contains('alphabet-az'):
+        e.target.lastChild.classList.remove('alphabet-az');
+        e.target.lastChild.classList.add('alphabet-za');
+        sortZA(i, list);
+        break;
+      case e.target.lastChild.classList.contains('alphabet-za'):
+        e.target.lastChild.classList.remove('alphabet-za');
+        list.append(...reserve);
+        break;
+    }
   };
 
   const init = (selectorApp, title) => {
@@ -293,9 +324,9 @@ const data = [
       btnDel,
       formOverlay,
     } = phoneBook;
-
     // Функционал
     const allRow = renderContacts(list, data);
+    let reservedArr = Array.from(list.rows);
 
     hoverRow(allRow, logo);
 
@@ -319,11 +350,12 @@ const data = [
     list.addEventListener('click', e => {
       if (e.target.classList.contains('del-icon')) {
         e.target.closest('.contact').remove();
+        reservedArr = Array.from(list.rows);
       }
     });
 
     thead.addEventListener('click', e => {
-      sortRows(e, list);
+      sortRows(e, thead, list, reservedArr);
     });
   };
 
