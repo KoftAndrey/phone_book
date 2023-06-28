@@ -1,33 +1,31 @@
 'use strict';
-
-const data = [
-  {
-    name: 'Иван',
-    surname: 'Яковлев',
-    phone: '+79514545454',
-  },
-  {
-    name: 'Антон',
-    surname: 'Верещагин',
-    phone: '+79999999999',
-  },
-  {
-    name: 'Яна',
-    surname: 'Иванова',
-    phone: '+79800252525',
-  },
-  {
-    name: 'Мария',
-    surname: 'Анисимова',
-    phone: '+79876543210',
-  },
-];
-
 {
-  const addContactData = contact => {
-    data.push(contact);
+  // Работа с localStorage
+  const getStorage = key => {
+    if (localStorage.getItem(key)) {
+      return JSON.parse(localStorage.getItem(key));
+    } else {
+      return [];
+    }
   };
 
+  const setStorage = (key, obj) => {
+    const arr = getStorage(key);
+    arr.unshift(obj);
+    const str = JSON.stringify(arr);
+    localStorage.setItem(key, str);
+  };
+
+  const removeStorage = (key, phone) => {
+    const arr = getStorage(key);
+    for (let i = 0; i < arr.length - 1; i++) {
+      if (arr[i].phone === phone) arr.splice(i, 1);
+    }
+    const str = JSON.stringify(arr);
+    localStorage.setItem(key, str);
+  };
+
+  // Создание элементов
   const createContainer = () => {
     const container = document.createElement('div');
     container.classList.add('container');
@@ -82,7 +80,6 @@ const data = [
 
     return footerText;
   };
-
 
   const createButtonsGroup = params => {
     const btnWrapper = document.createElement('div');
@@ -228,6 +225,71 @@ const data = [
     return tr;
   };
 
+  // Сортировка
+  const renderListFromLocalStorage = (elem, logo) => {
+    const arr = getStorage('phonebook').map(x => createRow(x, logo));
+    elem.replaceChildren(...arr);
+  };
+
+  const sortAZ = (i, list) => {
+    const sorted = Array.from(list.rows)
+        .sort((a, b) => (a.cells[i].innerHTML > b.cells[i].innerHTML ? 1 : -1));
+    list.append(...sorted);
+  };
+
+  const sortZA = (i, list) => {
+    const sorted = Array.from(list.rows)
+        .sort((a, b) => (a.cells[i].innerHTML > b.cells[i].innerHTML ? -1 : 1));
+    list.append(...sorted);
+  };
+
+  const sortRows = (e, thead, list, logo) => {
+    const i = Array.from(thead.firstElementChild.cells).indexOf(e.target);
+    if (i === 1) {
+      e.target.nextElementSibling.lastChild.classList.remove('alphabet-az', 'alphabet-za');
+    }
+    if (i === 2) {
+      e.target.previousElementSibling.lastChild.classList.remove('alphabet-az', 'alphabet-za');
+    }
+
+    switch (true) {
+      case i !== 1 && i !== 2:
+        break;
+      case e.target.lastChild.classList.value === 'sort-icon':
+        e.target.lastChild.classList.add('alphabet-az');
+        sessionStorage.setItem('columnIndex', i);
+        sessionStorage.setItem('sortDirection', 'az');
+        sortAZ(i, list);
+        break;
+      case e.target.lastChild.classList.contains('alphabet-az'):
+        e.target.lastChild.classList.remove('alphabet-az');
+        e.target.lastChild.classList.add('alphabet-za');
+        sessionStorage.setItem('sortDirection', 'za');
+        sortZA(i, list);
+        break;
+      case e.target.lastChild.classList.contains('alphabet-za'):
+        e.target.lastChild.classList.remove('alphabet-za');
+        sessionStorage.clear();
+        renderListFromLocalStorage(list, logo);
+        break;
+    }
+  };
+
+  const sortFromStorage = (i, list) => {
+    const target = i === '1' ?
+    document.querySelector('.name') :
+    document.querySelector('.surname');
+    if (sessionStorage.getItem('sortDirection') === 'az') {
+      target.lastChild.classList.add('alphabet-az');
+      sortAZ(i, list);
+    }
+    if (sessionStorage.getItem('sortDirection') === 'za') {
+      target.lastChild.classList.add('alphabet-za');
+      sortZA(i, list);
+    }
+  };
+
+  // Рендер элементов
   const renderPhoneBook = (app, title) => {
     const header = createHeader();
     const logo = createLogo(title);
@@ -265,52 +327,15 @@ const data = [
     };
   };
 
-  const renderContacts = (elem, data, logo) => {
-    const allRow = data.map(x => createRow(x, logo));
+  const renderContacts = (elem, logo) => {
+    const allRow = getStorage('phonebook').map(x => createRow(x, logo));
     elem.append(...allRow);
-    return allRow;
-  };
-
-  const sortAZ = (i, list) => {
-    const sorted = Array.from(list.rows)
-        .sort((a, b) => (a.cells[i].innerHTML > b.cells[i].innerHTML ? 1 : -1));
-    list.append(...sorted);
-  };
-
-  const sortZA = (i, list) => {
-    const sorted = Array.from(list.rows)
-        .sort((a, b) => (a.cells[i].innerHTML > b.cells[i].innerHTML ? -1 : 1));
-    list.append(...sorted);
-  };
-
-  const sortRows = (e, thead, list, reserve) => {
-    const i = Array.from(thead.firstElementChild.cells).indexOf(e.target);
-    if (i === 1) {
-      e.target.nextElementSibling.lastChild.classList.remove('alphabet-az', 'alphabet-za');
-    }
-    if (i === 2) {
-      e.target.previousElementSibling.lastChild.classList.remove('alphabet-az', 'alphabet-za');
-    }
-
-    switch (true) {
-      case i !== 1 && i !== 2:
-        break;
-      case e.target.lastChild.classList.value === 'sort-icon':
-        e.target.lastChild.classList.add('alphabet-az');
-        sortAZ(i, list);
-        break;
-      case e.target.lastChild.classList.contains('alphabet-az'):
-        e.target.lastChild.classList.remove('alphabet-az');
-        e.target.lastChild.classList.add('alphabet-za');
-        sortZA(i, list);
-        break;
-      case e.target.lastChild.classList.contains('alphabet-za'):
-        e.target.lastChild.classList.remove('alphabet-za');
-        list.append(...reserve);
-        break;
+    if (sessionStorage.getItem('columnIndex')) {
+      sortFromStorage(sessionStorage.getItem('columnIndex'), elem);
     }
   };
 
+  // Управление
   const modalControl = (btnAdd, formOverlay) => {
     const openModal = () => formOverlay.classList.add('is-visible');
     const closeModal = () => formOverlay.classList.remove('is-visible');
@@ -329,7 +354,7 @@ const data = [
     };
   };
 
-  const deleteControl = (btnDel, list, refreshReservedArr) => {
+  const deleteControl = (btnDel, list) => {
     btnDel.addEventListener('click', () => {
       document.querySelectorAll('.delete').forEach(del => {
         del.classList.toggle('is-visible');
@@ -339,7 +364,12 @@ const data = [
     list.addEventListener('click', e => {
       if (e.target.classList.contains('del-icon')) {
         e.target.closest('.contact').remove();
-        refreshReservedArr();
+        const phone = e.target.closest('.contact')
+            .lastElementChild
+            .previousElementSibling
+            .lastElementChild
+            .textContent;
+        removeStorage('phonebook', phone);
       }
     });
   };
@@ -355,12 +385,13 @@ const data = [
       const newContact = Object.fromEntries(formData);
 
       addContactToPage(newContact, list, logo);
-      addContactData(newContact);
+      setStorage('phonebook', newContact);
       form.reset();
       closeModal();
     });
   };
 
+  // Инициализация
   const init = (selectorApp, title) => {
     const app = document.querySelector(selectorApp);
 
@@ -373,22 +404,17 @@ const data = [
       formOverlay,
       form,
     } = renderPhoneBook(app, title);
-    // Функционал
-    renderContacts(list, data, logo);
 
-    let reservedArr;
-    const refreshReservedArr = () => {
-      reservedArr = Array.from(list.rows);
-    };
+    // Функционал
+    renderContacts(list, logo);
 
     const {closeModal} = modalControl(btnAdd, formOverlay);
-    deleteControl(btnDel, list, refreshReservedArr);
+    deleteControl(btnDel, list);
     formControl(form, list, closeModal, logo);
 
     const alphabetSort = (thead, list) => {
-      refreshReservedArr();
       thead.addEventListener('click', e => {
-        sortRows(e, thead, list, reservedArr);
+        sortRows(e, thead, list, logo);
       });
     };
 
