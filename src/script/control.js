@@ -1,5 +1,5 @@
-import {setStorage, removeStorage} from './serviceStorage.js';
-import {createRow} from './createElements.js';
+import {setStorage, removeStorage} from './serviceStorage';
+import {createRow} from './createElements';
 
 export const modalControl = (btnAdd, formOverlay) => {
   const openModal = () => formOverlay.classList.add('is-visible');

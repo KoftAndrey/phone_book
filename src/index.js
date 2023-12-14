@@ -1,7 +1,12 @@
-import render from './modules/render.js';
+import render from './script/render';
 const {renderPhoneBook, renderContacts} = render;
-import {modalControl, deleteControl, formControl} from './modules/control.js';
-import {sortRows} from './modules/alphabetSort.js';
+
+import {modalControl, deleteControl, formControl} from './script/control';
+import {sortRows} from './script/alphabetSort';
+
+import './index.html';
+
+import './scss/index.scss';
 
 {const init = (selectorApp, title) => {
   const app = document.querySelector(selectorApp);

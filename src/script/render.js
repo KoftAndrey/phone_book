@@ -1,7 +1,8 @@
-import {getStorage} from './serviceStorage.js';
-import {sortFromStorage} from './alphabetSort.js';
-import * as create from './createElements.js';
+import {getStorage} from './serviceStorage';
+import {sortFromStorage} from './alphabetSort';
+import * as create from './createElements';
 const {
+  createImageLogo,
   createHeader,
   createLogo,
   createMain,
@@ -15,6 +16,7 @@ const {
 
 
 const renderPhoneBook = (app, title) => {
+  const icon = createImageLogo();
   const header = createHeader();
   const logo = createLogo(title);
   const main = createMain();
@@ -35,7 +37,7 @@ const renderPhoneBook = (app, title) => {
   const footer = createFooter();
   const footertext = createFooterText();
 
-  header.headerContainer.append(logo);
+  header.headerContainer.append(icon, logo);
   main.mainContainer.append(buttonsGroup.btnWrapper, table, overlay);
   footer.footerContainer.append(footertext);
   app.append(header, main, footer);

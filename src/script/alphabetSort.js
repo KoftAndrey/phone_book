@@ -1,5 +1,5 @@
-import {getStorage} from './serviceStorage.js';
-import {createRow} from './createElements.js';
+import {getStorage} from './serviceStorage';
+import {createRow} from './createElements';
 
 const renderListFromLocalStorage = (elem, logo) => {
   const arr = getStorage('phonebook').map(x => createRow(x, logo));
